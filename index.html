@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dartlemura — An Artist</title>
+    
+    <meta name="description" content="Dartlemura - An Artist who performs coding, designing and more..">
+    <meta name="theme-color" content="#050505">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.32/dist/lenis.min.js"></script>
+
+    <!-- Fonts: Clash Display (Grotesk) & JetBrains Mono (Technical) -->
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        base: '#050505',
+                        graphite: '#121212',
+                        'warm-white': '#F4F4F0',
+                        acid: '#CCFF00', // Signature accent
+                    },
+                    fontFamily: {
+                        sans: ['Clash Display', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    fontSize: {
+                        'hero': 'clamp(3.5rem, 12vw, 15rem)',
+                        'huge': 'clamp(3rem, 8vw, 9rem)',
+                        'mega': 'clamp(2.5rem, 6vw, 6rem)',
+                    },
+                    transitionTimingFunction: {
+                        'expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --acid: #CCFF00;
+            --base: #050505;
+            --graphite: #121212;
+            --white: #F4F4F0;
+        }
+
+        /* Base Resets & Typography */
+        body, html {
+            background-color: var(--base);
+            color: var(--white);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+        }
+
+        ::selection {
+            background-color: var(--acid);
+            color: var(--base);
+        }
+
+        
+        /* Subtle Film Grain */
+        .grain {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Technical Grid */
+        .tech-grid {
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 4rem 4rem;
+            background-position: center center;
+        }
+
+        /* Crop Marks (Editorial Motif) */
+        .crop-container { position: relative; }
+        .crop-container::before, .crop-container::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border-color: rgba(255,255,255,0.2); border-style: solid; pointer-events: none; z-index: 10;
+        }
+        .crop-tl::before { top: -5px; left: -5px; border-width: 1px 0 0 1px; }
+        .crop-tr::before { top: -5px; right: -5px; border-width: 1px 1px 0 0; }
+        .crop-bl::before { bottom: -5px; left: -5px; border-width: 0 0 1px 1px; }
+        .crop-br::before { bottom: -5px; right: -5px; border-width: 0 1px 1px 0; }
+
+        
+        .cursor-wrapper {
+            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 10000;
+            mix-blend-mode: difference;
+        }
+        
+        .cursor-dot {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 6px; height: 6px; background-color: var(--white); border-radius: 50%;
+            transition: opacity 0.2s;
+        }
+
+        .cursor-outline {
+            position: absolute; transform: translate(-50%, -50%);
+            width: 40px; height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600;
+            color: var(--base); text-transform: uppercase;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s, border-color 0.3s, border-radius 0.3s;
+        }
+
+        .cursor-text { opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+
+        /* Cursor Hover States */
+        body.hovering .cursor-dot { opacity: 0; }
+        body.hovering .cursor-outline {
+            width: 72px; height: 72px;
+            background-color: var(--white); border-color: var(--white); mix-blend-mode: normal;
+        }
+        body.hovering .cursor-outline.cursor-acid {
+            background-color: var(--acid); border-color: var(--acid);
+        }
+        body.hovering .cursor-outline.cursor-square {
+            border-radius: 4px;
+        }
+        body.hovering .cursor-text { opacity: 1; }
+
+        @media (max-width: 768px) {
+            .cursor-wrapper { display: none !important; }
+            body { cursor: auto; }
+        }
+
+
+        .text-outline { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.1); }
+        .text-outline-acid { color: transparent; -webkit-text-stroke: 1px var(--acid); }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .clip-reveal { clip-path: inset(100% 0 0 0); }
+        .clip-reveal-left { clip-path: inset(0 100% 0 0); }
+
+        /* Loader */
+        #loader {
+            position: fixed; inset: 0; z-index: 99999; background: var(--base);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        /* Overlay Systems (Projects/Lightbox) */
+        .fullscreen-overlay {
+            position: fixed; inset: 0; z-index: 9000; background: var(--base);
+            clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
+            overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        /* Lab Accordion */
+        .lab-content {
+            display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .lab-content-inner { overflow: hidden; }
+        .lab-item.active .lab-content { grid-template-rows: 1fr; }
+        .lab-item.active .lab-icon { transform: rotate(45deg); color: var(--acid); }
+
+        /* Hero Metadata Micro-labels */
+        .micro-label {
+            position: absolute; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            color: var(--acid); pointer-events: none; opacity: 0; transition: opacity 0.3s;
+            text-transform: uppercase; white-space: nowrap; z-index: 20;
+        }
+    </style>
+</head>
+<body class="tech-grid">
+
+    
+    <div id="loader">
+        <div class="font-mono text-xs text-gray-500 uppercase tracking-widest mb-4">Loading</div>
+        <div class="flex items-center gap-4">
+            <span class="w-12 h-[1px] bg-gray-800"><span id="loader-progress" class="block h-full bg-acid w-0"></span></span>
+            <span id="loader-count" class="font-mono text-acid text-sm">00</span>
+        </div>
+    </div>
+
+    <!-- Grain Overlay -->
+    <div class="grain"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-wrapper">
+        <div class="cursor-dot"></div>
+        <div class="cursor-outline"><span class="cursor-text">VIEW</span></div>
+    </div>
+
+
+    <!-- Desktop Nav -->
+    <nav class="fixed top-0 left-0 w-full p-6 md:p-8 flex justify-between items-start z-50 mix-blend-difference pointer-events-none">
+        <div class="flex flex-col gap-1 pointer-events-auto group cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            <span class="font-bold text-xl tracking-tight text-white group-hover:text-acid transition-colors">DARTLEMURA</span>
+        </div>
+        
+        <!-- Desktop Links -->
+        <ul class="hidden md:flex gap-10 font-mono text-xs uppercase tracking-widest pointer-events-auto">
+            <li><a href="#projects" class="hover:text-acid transition-colors hover-target" data-cursor="GO" data-cursor-style="acid">Work</a></li>
+            <li><a href="#art" class="hover:text-acid transition-colors hover-target" data-cursor="GO" data-cursor-style="acid">Art</a></li>
+            <li><a href="#lab" class="hover:text-acid transition-colors hover-target" data-cursor="GO" data-cursor-style="acid">Lab</a></li>
+            <li><a href="#about" class="hover:text-acid transition-colors hover-target" data-cursor="GO" data-cursor-style="acid">About</a></li>
+        </ul>
+
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-toggle" class="md:hidden pointer-events-auto font-mono text-xs uppercase tracking-widest text-white z-[60]">
+            Menu
+        </button>
+    </nav>
+
+    <!-- Mobile Fullscreen Nav -->
+    <div id="mobile-menu" class="fixed inset-0 bg-base z-[55] flex flex-col justify-center items-center clip-reveal pointer-events-none">
+        <ul class="flex flex-col gap-8 text-center">
+            <li class="overflow-hidden"><a href="#projects" class="mobile-link block font-sans font-bold text-5xl uppercase tracking-tighter translate-y-full">Work</a></li>
+            <li class="overflow-hidden"><a href="#art" class="mobile-link block font-sans font-bold text-5xl uppercase tracking-tighter translate-y-full">Art</a></li>
+            <li class="overflow-hidden"><a href="#lab" class="mobile-link block font-sans font-bold text-5xl uppercase tracking-tighter translate-y-full">Lab</a></li>
+            <li class="overflow-hidden"><a href="#about" class="mobile-link block font-sans font-bold text-5xl uppercase tracking-tighter translate-y-full">About</a></li>
+        </ul>
+        <div class="absolute bottom-10 font-mono text-[10px] text-gray-500 uppercase tracking-widest">A mind that builds</div>
+    </div>
+
+
+    <main>
+        <section id="hero" class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden">
+            <!-- Grid intersections (motif) -->
+            <div class="absolute top-1/4 left-1/4 w-2 h-2 border border-white/20"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-2 h-2 border border-white/20"></div>
+            
+            <div class="z-10 text-center w-full px-4 relative" id="hero-interactive-area">
+                <div class="overflow-hidden mb-4 flex justify-center">
+                    <span class="font-mono text-xs md:text-sm uppercase tracking-widest text-acid hero-reveal block translate-y-full">/ Creative-6174</span>
+                </div>
+
+                <!-- Title container for JS splitting -->
+                <h1 id="hero-title" class="font-sans font-bold text-hero leading-[0.85] tracking-tighter uppercase whitespace-nowrap relative z-10">
+                    DARTLEMURA
+                </h1>
+                
+                <div class="mt-8 overflow-hidden flex justify-center">
+                    <p class="font-mono text-xs md:text-sm uppercase tracking-widest text-gray-400 hero-reveal translate-y-full">
+                        A mind that builds.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+                <span class="font-mono text-[9px] uppercase tracking-[0.3em] text-gray-500">Scroll</span>
+                <div class="w-[1px] h-12 bg-gray-800 overflow-hidden relative">
+                    <div class="w-full h-full bg-white scroll-line absolute top-0 left-0 -translate-y-full"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="intro" class="py-32 md:py-52 px-6 md:px-20 border-t border-white/10 relative">
+            <div class="absolute top-0 left-6 md:left-20 w-[1px] h-12 bg-white/20"></div>
+            
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 md:gap-24">
+                <div class="md:w-1/2">
+                    <h2 class="font-sans font-bold text-huge leading-[0.9] tracking-tighter intro-heading">
+                        I MAKE<br>THINGS.
+                    </h2>
+                </div>
+                
+                <div class="md:w-1/2 flex flex-col justify-end gap-3 font-mono text-xl md:text-2xl text-gray-400 uppercase tracking-tight intro-list">
+                    <div class="overflow-hidden"><span class="block translate-y-full">Apps.</span></div>
+                    <div class="overflow-hidden"><span class="block translate-y-full">3D Models.</span></div>
+                    <div class="overflow-hidden"><span class="block translate-y-full text-warm-white">Websites.</span></div>
+                    <div class="overflow-hidden"><span class="block translate-y-full">Art</span></div>
+                    <div class="overflow-hidden"><span class="block translate-y-full text-acid">Experiments.</span></div>
+                    <div class="overflow-hidden mt-8">
+                        <span class="block translate-y-full text-xs md:text-sm text-gray-500 tracking-widest leading-relaxed border-l border-white/20 pl-4">
+                            Ideas that probably<br>started at midnight.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="projects" class="py-24 px-6 md:px-20 border-t border-white/10 relative">
+            <div class="max-w-7xl mx-auto">
+                
+                <div class="flex items-end justify-between mb-24 pb-8 border-b border-white/10 relative">
+                    <h2 class="font-sans font-bold text-mega leading-none tracking-tighter uppercase">Things I've<br>Built</h2>
+                    <div class="text-right">
+                        <span class="font-mono text-[10px] text-acid uppercase tracking-widest block mb-2">[ ARCHIVE 01 ]</span>
+                        <span class="font-mono text-xs text-gray-500 uppercase tracking-widest hidden md:block">Selected Artifacts</span>
+                    </div>
+                </div>
+
+                <!-- Project 1: Memakho -->
+                <div class="group relative mb-32 flex flex-col md:flex-row gap-12 items-center cursor-pointer hover-target project-trigger" data-project="memakho" data-cursor="OPEN" data-cursor-style="acid">
+                    <div class="w-full md:w-3/5 relative overflow-hidden aspect-[4/3] bg-graphite crop-container crop-tl crop-br">
+                        <img src="img/memakho-today.jpg" alt="Memakho Interface" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 clip-reveal image-reveal">
+                        <div class="absolute inset-0 bg-base/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                        <!-- Hover Metadata overlay -->
+                        <div class="absolute bottom-4 left-4 font-mono text-[10px] text-acid opacity-0 group-hover:opacity-100 transition-opacity duration-500 uppercase flex gap-4">
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-2/5 flex flex-col gap-6">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 bg-acid relative"><span class="absolute inset-0 bg-acid animate-ping opacity-50"></span></span>
+                            <span class="font-mono text-[10px] text-white uppercase tracking-widest">Flagship Artifact</span>
+                        </div>
+                        <h3 class="font-sans font-bold text-5xl md:text-7xl uppercase tracking-tighter group-hover:text-acid transition-colors duration-300">Memakho</h3>
+                        <p class="font-mono text-[10px] md:text-xs text-gray-400 uppercase tracking-widest leading-relaxed">Product / App / Design / Creative Technology</p>
+                    </div>
+                </div>
+
+                <!-- Project 2: Lemura -->
+                <div class="group relative flex flex-col md:flex-row-reverse gap-12 items-center cursor-pointer hover-target project-trigger" data-project="lemura" data-cursor="OPEN" data-cursor-style="square">
+                    <div class="w-full md:w-1/2 relative overflow-hidden aspect-[4/5] bg-graphite crop-container crop-tr crop-bl">
+                        <img src="https://placehold.co/900x1125/121212/F4F4F0?text=LEMURA+STUDY+TECH" alt="Lemura Interface" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 clip-reveal image-reveal">
+                        <div class="absolute inset-0 bg-base/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                    </div>
+                    
+                    <div class="w-full md:w-1/2 flex flex-col gap-6 md:pr-12 text-left md:text-right items-start md:items-end">
+                        <div class="font-mono text-[10px] text-gray-500 uppercase tracking-widest border border-white/10 px-3 py-1 rounded-full">Web App</div>
+                        <h3 class="font-sans font-bold text-5xl md:text-7xl uppercase tracking-tighter transition-transform duration-500 group-hover:-translate-x-4">Lemura</h3>
+                        <p class="font-mono text-[10px] md:text-xs text-gray-400 uppercase tracking-widest leading-relaxed">Productivity / PWA / Study Technology</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <section id="archive" class="py-24 px-6 md:px-20 border-t border-white/10">
+            <div class="max-w-5xl mx-auto">
+                <div class="flex justify-between items-end mb-12">
+                    <h3 class="font-mono text-xs text-acid uppercase tracking-widest">More Experiments</h3>
+                    <span class="font-mono text-[10px] text-gray-600">[ ARCHIVE 02 ]</span>
+                </div>
+                
+                <div class="flex flex-col border-t border-white/10">
+                    <!-- Archive Items -->
+                    <div class="group flex flex-col md:flex-row justify-between items-start md:items-center py-6 border-b border-white/10 hover-target cursor-not-allowed" data-cursor="LOCK">
+                        <div class="flex items-center gap-6">
+                            <span class="font-mono text-xs text-gray-600 transition-colors group-hover:text-acid">01</span>
+                            <h4 class="font-sans text-2xl md:text-4xl uppercase tracking-tight text-gray-400 group-hover:text-white transition-colors">Web Experiments</h4>
+                        </div>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mt-2 md:mt-0">In Progress</span>
+                    </div>
+                    
+                    <div class="group flex flex-col md:flex-row justify-between items-start md:items-center py-6 border-b border-white/10 hover-target cursor-not-allowed" data-cursor="LOCK">
+                        <div class="flex items-center gap-6">
+                            <span class="font-mono text-xs text-gray-600 transition-colors group-hover:text-acid">02</span>
+                            <h4 class="font-sans text-2xl md:text-4xl uppercase tracking-tight text-gray-400 group-hover:text-white transition-colors">UI Concepts</h4>
+                        </div>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mt-2 md:mt-0">Archived</span>
+                    </div>
+
+                    <div class="group flex flex-col md:flex-row justify-between items-start md:items-center py-6 border-b border-white/10 hover-target cursor-not-allowed" data-cursor="LOCK">
+                        <div class="flex items-center gap-6">
+                            <span class="font-mono text-xs text-gray-600 transition-colors group-hover:text-acid">03</span>
+                            <h4 class="font-sans text-2xl md:text-4xl uppercase tracking-tight text-gray-400 group-hover:text-white transition-colors">3D Experiments</h4>
+                        </div>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mt-2 md:mt-0">Prototype</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="art" class="py-32 border-t border-white/10 bg-[#0a0a0a]">
+            <div class="px-6 md:px-20 max-w-[100rem] mx-auto">
+                
+                <div class="mb-24 flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-8">
+                    <h2 class="font-sans font-bold text-mega leading-none tracking-tighter uppercase">The Other Side<br>Of My Brain</h2>
+                    <div class="text-right mt-6 md:mt-0">
+                        <span class="font-mono text-[10px] text-acid uppercase tracking-widest block mb-2">[ CREATIVE DOMAIN ]</span>
+                        <p class="font-mono text-xs uppercase tracking-widest text-gray-500">Not only code.</p>
+                    </div>
+                </div>
+
+                <!-- DRAWING: Irregular Editorial Grid -->
+                <div class="mb-32">
+                    <div class="flex items-center gap-4 mb-12">
+                        <span class="w-3 h-3 border border-acid"></span>
+                        <h3 class="font-mono text-sm uppercase tracking-widest">01 / Art</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-12 gap-4 md:gap-8 items-start">
+                        <!-- Art 1 (Large) -->
+                        <div class="col-span-2 md:col-span-5 relative group hover-target cursor-pointer lightbox-trigger crop-container crop-tl" data-cursor="VIEW" data-src="https://placehold.co/800x1000/121212/ffffff?text=TRADITIONAL+DRAWING">
+                            <div class="overflow-hidden bg-graphite">
+                                <img src="https://placehold.co/800x1000/121212/ffffff?text=TRADITIONAL+DRAWING" class="w-full h-auto grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
+                            </div>
+                            <div class="absolute -bottom-6 left-0 font-mono text-[9px] text-gray-500 uppercase opacity-0 group-hover:opacity-100 transition-opacity">Traditional / Graphite / [YEAR]</div>
+                        </div>
+                        
+                        <!-- spacer for desktop -->
+                        <div class="hidden md:block col-span-2"></div>
+                        
+                        <!-- Art 2 (Small, offset) -->
+                        <div class="col-span-1 md:col-span-4 mt-8 md:mt-32 relative group hover-target cursor-pointer lightbox-trigger" data-cursor="VIEW" data-src="https://placehold.co/600x800/121212/ffffff?text=DIGITAL+DRAWING">
+                            <div class="overflow-hidden bg-graphite">
+                                <img src="https://placehold.co/600x800/121212/ffffff?text=DIGITAL+DRAWING" class="w-full h-auto grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
+                            </div>
+                            <div class="absolute -bottom-6 left-0 font-mono text-[9px] text-gray-500 uppercase opacity-0 group-hover:opacity-100 transition-opacity">Digital / [YEAR]</div>
+                        </div>
+
+                        <!-- Art 3 (Medium) -->
+                        <div class="col-span-1 md:col-span-3 mt-4 md:mt-12 relative group hover-target cursor-pointer lightbox-trigger" data-cursor="VIEW" data-src="https://placehold.co/600x600/121212/ffffff?text=SKETCHBOOK">
+                            <div class="overflow-hidden bg-graphite border border-white/5">
+                                <img src="https://placehold.co/600x600/121212/ffffff?text=SKETCHBOOK" class="w-full h-auto grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLENDER: Spatial/Parallax -->
+                <div class="mb-32">
+                    <div class="flex items-center gap-4 mb-12">
+                        <span class="w-3 h-3 border border-acid"></span>
+                        <h3 class="font-mono text-sm uppercase tracking-widest">02 / Blender</h3>
+                    </div>
+                    <div class="relative w-full aspect-video bg-graphite overflow-hidden group hover-target cursor-pointer crop-container crop-tr crop-bl lightbox-trigger" data-cursor="EXPLORE" data-src="https://placehold.co/1920x1080/1a1a1a/CCFF00?text=3D+WORLD+RENDER">
+                        <!-- Simulated 3D depth via GSAP -->
+                        <img src="https://placehold.co/1920x1080/1a1a1a/CCFF00?text=3D+WORLD+RENDER" class="w-full h-[120%] object-cover absolute top-[-10%] left-0 parallax-img" alt="3D Render">
+                        
+                        <div class="absolute inset-0 border border-white/10 pointer-events-none z-20"></div>
+                        
+                        <div class="absolute top-4 left-4 md:top-8 md:left-8 z-20 flex flex-col gap-1">
+                            <span class="font-mono text-[10px] text-acid uppercase bg-base/80 backdrop-blur px-2 py-1 inline-block w-max">3D Study</span>
+                            <span class="font-mono text-[10px] text-white uppercase bg-base/80 backdrop-blur px-2 py-1 inline-block w-max">Render 001</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANGA: Comic Panel Composition -->
+                <div>
+                    <div class="flex items-center gap-4 mb-12">
+                        <span class="w-3 h-3 border border-acid"></span>
+                        <h3 class="font-mono text-sm uppercase tracking-widest">03 / Manga</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-2 max-w-4xl mx-auto bg-white p-1 md:p-2 border border-white/20 manga-reveal">
+                        <!-- Panels -->
+                        <div class="col-span-2 row-span-1 overflow-hidden relative group hover-target cursor-pointer lightbox-trigger" data-cursor="READ" data-src="https://placehold.co/800x400/ffffff/000000?text=PANEL+01">
+                            <img src="https://placehold.co/800x400/ffffff/000000?text=PANEL+01" class="w-full h-full object-cover grayscale transition-transform duration-500 group-hover:scale-105">
+                        </div>
+                        <div class="col-span-1 row-span-2 overflow-hidden relative group hover-target cursor-pointer lightbox-trigger" data-cursor="READ" data-src="https://placehold.co/400x820/ffffff/000000?text=PANEL+02">
+                            <img src="https://placehold.co/400x820/ffffff/000000?text=PANEL+02" class="w-full h-full object-cover grayscale transition-transform duration-500 group-hover:scale-105">
+                        </div>
+                        <div class="col-span-1 row-span-1 overflow-hidden relative group hover-target cursor-pointer lightbox-trigger" data-cursor="READ" data-src="https://placehold.co/400x400/ffffff/000000?text=PANEL+03">
+                            <img src="https://placehold.co/400x400/ffffff/000000?text=PANEL+03" class="w-full h-full object-cover grayscale transition-transform duration-500 group-hover:scale-105">
+                        </div>
+                        <div class="col-span-1 row-span-1 overflow-hidden relative group hover-target cursor-pointer lightbox-trigger" data-cursor="READ" data-src="https://placehold.co/400x400/ffffff/000000?text=PANEL+04">
+                            <img src="https://placehold.co/400x400/ffffff/000000?text=PANEL+04" class="w-full h-full object-cover grayscale transition-transform duration-500 group-hover:scale-105">
+                        </div>
+                        <div class="col-span-2 row-span-1 overflow-hidden relative group hover-target cursor-pointer lightbox-trigger" data-cursor="READ" data-src="https://placehold.co/800x300/ffffff/000000?text=PANEL+05">
+                            <img src="https://placehold.co/800x300/ffffff/000000?text=PANEL+05" class="w-full h-full object-cover grayscale transition-transform duration-500 group-hover:scale-105">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <section id="lab" class="py-24 px-6 md:px-20 border-t border-white/10 relative">
+            <!-- Background structural grid -->
+            <div class="absolute inset-0 tech-grid opacity-50 pointer-events-none"></div>
+
+            <div class="max-w-6xl mx-auto relative z-10">
+                <div class="flex flex-col md:flex-row gap-12 md:gap-24">
+                    
+                    <div class="md:w-1/3">
+                        <h2 class="font-sans font-bold text-5xl md:text-6xl uppercase tracking-tighter mb-6">Lab</h2>
+                        <p class="font-mono text-xs text-gray-400 uppercase tracking-widest leading-relaxed">
+                            Unfinished experiments, strange ideas, prototypes and things being tested.
+                        </p>
+                    </div>
+
+                    <div class="md:w-2/3 border-t border-white/10">
+                        <!-- Lab Item 1 -->
+                        <div class="lab-item border-b border-white/10 hover-target" data-cursor="TEST">
+                            <div class="py-6 flex justify-between items-center cursor-pointer group lab-header">
+                                <div class="flex items-center gap-6">
+                                    <span class="font-mono text-xs text-gray-600">01</span>
+                                    <h4 class="font-sans text-2xl md:text-3xl uppercase tracking-tight group-hover:text-acid transition-colors">Interaction</h4>
+                                </div>
+                                <span class="font-mono text-xl text-gray-600 transition-transform duration-300 lab-icon">+</span>
+                            </div>
+                            <div class="lab-content">
+                                <div class="lab-content-inner">
+                                    <div class="pb-8 pt-2 flex flex-col md:flex-row gap-6">
+                                        <div class="w-full md:w-1/2 aspect-video bg-graphite flex items-center justify-center font-mono text-xs text-gray-600 border border-white/5">
+                                            [ DEMO PLACEHOLDER ]
+                                        </div>
+                                        <div class="w-full md:w-1/2 flex flex-col gap-4">
+                                            <span class="font-mono text-[10px] text-acid uppercase border border-acid/30 px-2 py-1 w-max rounded-sm">Experimental</span>
+                                            <p class="font-mono text-xs text-gray-400 leading-relaxed uppercase">Testing custom cursor physics, magnetic typography, and non-standard hover states.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lab Item 2 -->
+                        <div class="lab-item border-b border-white/10 hover-target" data-cursor="TEST">
+                            <div class="py-6 flex justify-between items-center cursor-pointer group lab-header">
+                                <div class="flex items-center gap-6">
+                                    <span class="font-mono text-xs text-gray-600">02</span>
+                                    <h4 class="font-sans text-2xl md:text-3xl uppercase tracking-tight group-hover:text-acid transition-colors">WebGL Studies</h4>
+                                </div>
+                                <span class="font-mono text-xl text-gray-600 transition-transform duration-300 lab-icon">+</span>
+                            </div>
+                            <div class="lab-content">
+                                <div class="lab-content-inner">
+                                    <div class="pb-8 pt-2 flex flex-col gap-4">
+                                        <span class="font-mono text-[10px] text-yellow-500 uppercase border border-yellow-500/30 px-2 py-1 w-max rounded-sm">In Progress</span>
+                                        <p class="font-mono text-xs text-gray-400 leading-relaxed uppercase">Exploring shaders and particle systems for future web experiences.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lab Item 3 -->
+                        <div class="lab-item border-b border-white/10 hover-target" data-cursor="TEST">
+                            <div class="py-6 flex justify-between items-center cursor-pointer group lab-header">
+                                <div class="flex items-center gap-6">
+                                    <span class="font-mono text-xs text-gray-600">03</span>
+                                    <h4 class="font-sans text-2xl md:text-3xl uppercase tracking-tight group-hover:text-acid transition-colors">UI Micro-interactions</h4>
+                                </div>
+                                <span class="font-mono text-xl text-gray-600 transition-transform duration-300 lab-icon">+</span>
+                            </div>
+                            <div class="lab-content">
+                                <div class="lab-content-inner">
+                                    <div class="pb-8 pt-2 flex flex-col gap-4">
+                                        <span class="font-mono text-[10px] text-gray-500 uppercase border border-white/20 px-2 py-1 w-max rounded-sm">Archived</span>
+                                        <p class="font-mono text-xs text-gray-400 leading-relaxed uppercase">A collection of button states, form validations, and navigation transitions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="process-wrapper" class="relative bg-white text-base">
+            <div id="process" class="h-screen w-full flex flex-col justify-center items-center overflow-hidden relative">
+                <!-- Static background elements -->
+                <div class="absolute inset-0 tech-grid opacity-[0.03] pointer-events-none" style="filter: invert(1);"></div>                
+                <div class="relative w-full h-[20vh] flex justify-center items-center">
+                    <!-- Words stacked and manipulated via JS Timeline -->
+                    <div class="absolute font-sans font-bold text-mega uppercase tracking-tighter process-word" style="opacity: 1; transform: translateY(0);">IDEA</div>
+                    <div class="absolute font-sans font-bold text-mega uppercase tracking-tighter process-word" style="opacity: 0; transform: translateY(50px);">BUILD</div>
+                    <div class="absolute font-sans font-bold text-mega uppercase tracking-tighter process-word" style="opacity: 0; transform: translateY(50px);">LEARN</div>
+                    <div class="absolute font-sans font-bold text-mega uppercase tracking-tighter process-word" style="opacity: 0; transform: translateY(50px);">BREAK</div>
+                    <div class="absolute font-sans font-bold text-mega uppercase tracking-tighter process-word text-outline" style="-webkit-text-stroke-color: #050505; opacity: 0; transform: translateY(50px);">REBUILD</div>
+                </div>
+
+                <!-- Progress indicator line -->
+                <div class="w-48 h-[1px] bg-gray-200 mt-12 relative overflow-hidden">
+                    <div id="process-progress" class="absolute top-0 left-0 h-full bg-base w-0"></div>
+                </div>
+
+                <p class="mt-8 font-mono text-[10px] max-w-sm text-center uppercase tracking-widest px-4 text-gray-500">
+                    My Process
+                </p>
+            </div>
+        </section>
+
+
+        <section id="about" class="py-32 px-6 md:px-20 border-t border-white/10">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24">
+                
+                <div class="md:w-1/2">
+                    <h2 class="font-sans font-bold text-5xl md:text-7xl uppercase tracking-tighter mb-8 leading-[0.9]">Who is<br>Dartlemura?</h2>
+                    <p class="font-mono text-sm text-gray-300 leading-relaxed max-w-md uppercase tracking-widest border-l border-acid pl-4">
+                        An Artist who performs coding, designing and more..
+                    </p>
+                </div>
+
+                <div class="md:w-1/2 grid grid-cols-2 gap-x-8 gap-y-12 font-mono text-xs uppercase tracking-widest">
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-gray-600 mb-3">Info</h4>
+                        <ul class="text-white space-y-2">
+                            <li>C.M.Darshan</li>
+                            <li>14 y/o</li>
+                    </div>
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-gray-600 mb-3">Profession</h4>
+                        <p class="text-white">Student</p>
+                    </div>
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-gray-600 mb-3">Interests</h4>
+                        <ul class="text-white space-y-2">
+                            <li>Creative Tech</li>
+                            <li>Interface Design</li>
+                            <li>Manga Art</li>
+                        </ul>
+                    </div>
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-gray-600 mb-3">Learning</h4>
+                        <ul class="text-white space-y-2">
+                            <li>Artist,</li>
+                            <li>Vibe Coder,</li>
+                            <li>HTML/CSS/JS,</li>
+                            <li>Python,</li>
+                            <li>React, TypeScript</li>
+                        </ul>
+                    </div>
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-gray-600 mb-3">Contact</h4>
+                        <ul class="text-white space-y-2">
+                            <li>+91 82814412144 <li class="text-gray-600 mb-3">[India]</li></li>
+                            <li></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <footer id="footer" class="py-20 px-6 md:px-20 border-t border-white/10 flex flex-col items-center justify-center min-h-[80vh] relative overflow-hidden">
+            
+            <!-- Giant Background Typography -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none overflow-hidden" aria-hidden="true">
+                <span id="footer-giant-text" class="font-sans font-bold text-[25vw] whitespace-nowrap tracking-tighter text-outline-acid">DARTLEMURA</span>
+            </div>
+
+            <div class="relative z-10 text-center flex flex-col items-center w-full">
+                <div class="font-mono text-[9px] text-acid uppercase tracking-widest mb-8 border border-acid/20 px-3 py-1 rounded-sm">
+                    Creative Mode: Active
+                </div>
+
+                <h2 class="font-sans font-bold text-huge leading-none tracking-tighter uppercase mb-16 hover-target" data-cursor="BUILD">
+                    Keep<br>Learning.
+                </h2>
+
+                <div class="flex gap-8 font-mono text-xs uppercase tracking-widest">
+                    <a href="https://github.com/dartlemura" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors hover-target" data-cursor="GO">GitHub</a>
+                    <a href="https://www.instagram.com/dartlemura" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors hover-target" data-cursor="GO">Instagram</a>
+                    <a href="https://www.youtube.com/@dartlemura" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors hover-target" data-cursor="GO">Youtube</a>
+                    <a href="mailto:dartlemura@gmail.com" class="text-gray-400 hover:text-white transition-colors hover-target" data-cursor="GO">Email</a>
+                </div>
+            </div>
+
+            <div class="absolute bottom-6 left-6 font-mono text-[10px] text-gray-600 uppercase tracking-widest">
+                © Dartlemura 2026
+            </div>
+            <div class="absolute bottom-6 right-6 font-mono text-[10px] text-gray-600 uppercase tracking-widest hidden md:block">
+                Help / Feedback
+            </div>
+        </footer>
+    </main>
+
+
+    <!-- Project Fullscreen Overlay -->
+    <div id="project-overlay" class="fullscreen-overlay hidden">
+        
+        <!-- Header / Nav -->
+        <div class="sticky top-0 w-full p-6 md:p-8 flex justify-between items-center z-50 mix-blend-difference">
+            <span class="font-mono text-xs uppercase tracking-widest text-gray-400" id="overlay-category">Category</span>
+            <button id="close-project" class="font-mono text-xs uppercase tracking-widest text-white hover:text-acid transition-colors hover-target" data-cursor="CLOSE">Close [X]</button>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 md:px-20 py-20 w-full flex-grow flex flex-col">
+            <h2 id="overlay-title" class="font-sans font-bold text-huge uppercase tracking-tighter mb-12">Title</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 border-t border-white/10 pt-12">
+                <div class="md:col-span-4 font-mono text-xs text-gray-400 uppercase tracking-widest flex flex-col gap-8">
+                    <div>
+                        <span class="text-gray-600 block mb-2">Role</span>
+                        <span class="text-white" id="overlay-role">Design & Dev</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 block mb-2">Status</span>
+                        <span class="text-white" id="overlay-status">Completed</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 block mb-2">Link</span>
+                        <a href="#" class="text-acid underline hover:no-underline" id="overlay-link">View Project</a>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-8">
+                    <p class="font-mono text-sm md:text-base text-gray-300 leading-relaxed uppercase tracking-wide mb-16" id="overlay-desc">
+                        Project description goes here.
+                    </p>
+                    
+                    <!-- Media Grid -->
+                    <div class="grid grid-cols-1 gap-8" id="overlay-media">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Art Lightbox Overlay -->
+    <div id="lightbox" class="fixed inset-0 bg-base/95 backdrop-blur-sm z-[9999] hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <button id="close-lightbox" class="absolute top-6 right-6 md:top-10 md:right-10 font-mono text-xs text-white uppercase tracking-widest hover:text-acid transition-colors p-4">Close</button>
+        <img id="lightbox-img" src="" alt="Artwork" class="max-w-[90vw] max-h-[85vh] object-contain scale-95 transition-transform duration-300">
+    </div>
+
+    
+    <script>
+        // Project Data Store
+        const projectData = {
+            memakho: {
+                title: "Memakho",
+                category: "PRIVATE MEMORY / CREATIVE TECHNOLOGY",
+                status: "Live",
+                link: "https://dartlemura.github.io/memaho",
+                desc: "Memakho is a private personal-memory app designed around tiny moments of everyday life. Core idea: 'Give me one second from our day.' A focus on atmospheric interface design and intimate technology.",
+                media: [
+                    "https://placehold.co/1200x800/121212/CCFF00?text=INTERFACE+DETAIL+01",
+                    "https://placehold.co/1200x800/121212/CCFF00?text=TYPOGRAPHY+SYSTEM"
+                ]
+            },
+            lemura: {
+                title: "Lemura",
+                category: "FOCUS / STUDY TECHNOLOGY",
+                status: "Live",
+                link: "[YOUR LINK HERE]",
+                desc: "Lemura is a focused study productivity experience built around focus sessions, streaks, progress, XP, and reducing distraction. Designed for deep work and academic endurance.",
+                media: [
+                    "https://placehold.co/1200x800/121212/F4F4F0?text=FOCUS+TIMER+VIEW",
+                    "https://placehold.co/1200x800/121212/F4F4F0?text=PROGRESSION+SYSTEM"
+                ]
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // Check for reduced motion preference
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isMobile = window.innerWidth <= 768;
+
+            // 1. Core Loop: Lenis + GSAP (Single unified loop)
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+                smoothWheel: true,
+                touchMultiplier: 2,
+            });
+
+            lenis.on('scroll', ScrollTrigger.update);
+
+            gsap.ticker.add((time) => {
+                lenis.raf(time * 1000);
+            });
+            gsap.ticker.lagSmoothing(0, 0);
+
+            
+            const loaderTl = gsap.timeline();
+            const countEl = document.getElementById('loader-count');
+            const progressEl = document.getElementById('loader-progress');
+            
+            let count = { val: 0 };
+            
+            if (!prefersReducedMotion) {
+                loaderTl.to(count, {
+                    val: 100,
+                    duration: 1.5,
+                    ease: "power2.inOut",
+                    onUpdate: function() {
+                        countEl.innerText = Math.floor(count.val).toString().padStart(2, '0');
+                        progressEl.style.width = `${count.val}%`;
+                    }
+                })
+                .to("#loader", {
+                    yPercent: -100,
+                    duration: 0.8,
+                    ease: "expo.inOut"
+                })
+                // Trigger Hero animations after loader
+                .fromTo(".hero-reveal", 
+                    { y: "100%" },
+                    { y: "0%", duration: 1, stagger: 0.1, ease: "expo.out" },
+                    "-=0.4"
+                );
+            } else {
+                document.getElementById('loader').style.display = 'none';
+                gsap.set(".hero-reveal", { y: "0%" });
+            }
+
+
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+            const cursorText = document.querySelector('.cursor-text');
+            const hoverTargets = document.querySelectorAll('.hover-target');
+            
+            if (!isMobile && !prefersReducedMotion) {
+                const xToDot = gsap.quickTo(cursorDot, "left", {duration: 0.1, ease: "power3"});
+                const yToDot = gsap.quickTo(cursorDot, "top", {duration: 0.1, ease: "power3"});
+                const xToOutline = gsap.quickTo(cursorOutline, "left", {duration: 0.25, ease: "expo.out"});
+                const yToOutline = gsap.quickTo(cursorOutline, "top", {duration: 0.25, ease: "expo.out"});
+
+                window.addEventListener("mousemove", (e) => {
+                    xToDot(e.clientX); yToDot(e.clientY);
+                    xToOutline(e.clientX); yToOutline(e.clientY);
+                });
+
+                hoverTargets.forEach(target => {
+                    target.addEventListener('mouseenter', () => {
+                        document.body.classList.add('hovering');
+                        cursorText.textContent = target.getAttribute('data-cursor') || 'VIEW';
+                        
+                        const style = target.getAttribute('data-cursor-style');
+                        if(style === 'acid') cursorOutline.classList.add('cursor-acid');
+                        if(style === 'square') cursorOutline.classList.add('cursor-square');
+                    });
+                    
+                    target.addEventListener('mouseleave', () => {
+                        document.body.classList.remove('hovering');
+                        cursorOutline.classList.remove('cursor-acid', 'cursor-square');
+                    });
+                });
+            }
+
+
+            const heroTitle = document.getElementById('hero-title');
+            const heroArea = document.getElementById('hero-interactive-area');
+            const originalText = heroTitle.innerText.trim();
+            heroTitle.innerHTML = '';
+            
+            // Split text manually for performance & control
+            const letters = originalText.split('').map(char => {
+                const span = document.createElement('span');
+                span.innerText = char;
+                span.style.display = 'inline-block';
+                span.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s';
+                heroTitle.appendChild(span);
+                return span;
+            });
+
+            if (!isMobile && !prefersReducedMotion) {
+                const metadataWords = ["CODE", "DESIGN", "3D", "BUILD", "ART", "SYS"];
+                let lastSpawn = 0;
+
+                heroArea.addEventListener('mousemove', (e) => {
+                    const { clientX, clientY } = e;
+                    const rect = heroTitle.getBoundingClientRect();
+                    
+                    // Magnetic Letters
+                    letters.forEach(letter => {
+                        const lRect = letter.getBoundingClientRect();
+                        const centerX = lRect.left + lRect.width / 2;
+                        const centerY = lRect.top + lRect.height / 2;
+                        const distX = clientX - centerX;
+                        const distY = clientY - centerY;
+                        const distance = Math.sqrt(distX * distX + distY * distY);
+                        
+                        const maxDist = 150;
+                        if (distance < maxDist) {
+                            const force = (maxDist - distance) / maxDist;
+                            const moveX = (distX / distance) * force * -20;
+                            const moveY = (distY / distance) * force * -20;
+                            const rotate = (distX / distance) * force * 10;
+                            
+                            letter.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg) scale(${1 + force*0.1})`;
+                            letter.style.color = force > 0.6 ? 'var(--acid)' : 'var(--white)';
+                        } else {
+                            letter.style.transform = `translate(0px, 0px) rotate(0deg) scale(1)`;
+                            letter.style.color = 'var(--white)';
+                        }
+                    });
+
+                    // Spawn Micro-labels
+                    if (Date.now() - lastSpawn > 150 && Math.random() > 0.5) {
+                        lastSpawn = Date.now();
+                        const label = document.createElement('span');
+                        label.className = 'micro-label';
+                        label.innerText = metadataWords[Math.floor(Math.random() * metadataWords.length)];
+                        label.style.left = `${clientX - rect.left + (Math.random() * 60 - 30)}px`;
+                        label.style.top = `${clientY - rect.top + (Math.random() * 60 - 30)}px`;
+                        heroTitle.appendChild(label);
+
+                        gsap.to(label, { opacity: 0.6, y: -20, duration: 0.5, ease: "power2.out" });
+                        gsap.to(label, { opacity: 0, y: -40, duration: 0.5, delay: 0.5, onComplete: () => label.remove() });
+                    }
+                });
+
+                heroArea.addEventListener('mouseleave', () => {
+                    letters.forEach(letter => {
+                        letter.style.transform = `translate(0px, 0px) rotate(0deg) scale(1)`;
+                        letter.style.color = 'var(--white)';
+                    });
+                });
+            }
+
+
+            if (!prefersReducedMotion) {
+                // Intro text reveal
+                gsap.fromTo(".intro-heading", 
+                    { opacity: 0, y: 50 },
+                    { 
+                        opacity: 1, y: 0, duration: 1, ease: "expo.out",
+                        scrollTrigger: { trigger: "#intro", start: "top 75%" }
+                    }
+                );
+
+                gsap.to(".intro-list span", {
+                    y: "0%", duration: 0.8, stagger: 0.1, ease: "expo.out",
+                    scrollTrigger: { trigger: "#intro", start: "top 65%" }
+                });
+
+                // Image masks reveals
+                gsap.utils.toArray('.image-reveal').forEach(img => {
+                    gsap.to(img, {
+                        clipPath: "inset(0 0 0 0)", duration: 1.5, ease: "expo.inOut",
+                        scrollTrigger: { trigger: img, start: "top 85%" }
+                    });
+                });
+
+                // Manga grid reveal
+                gsap.fromTo(".manga-reveal > div", 
+                    { opacity: 0, y: 20 },
+                    { 
+                        opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out",
+                        scrollTrigger: { trigger: ".manga-reveal", start: "top 80%" }
+                    }
+                );
+
+                // Blender Parallax
+                gsap.to(".parallax-img", {
+                    y: "10%", ease: "none",
+                    scrollTrigger: {
+                        trigger: ".parallax-img",
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: true
+                    }
+                });
+            }
+
+            
+            const processWords = gsap.utils.toArray('.process-word');
+            
+            if (processWords.length > 0 && !prefersReducedMotion) {
+                const processTl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: "#process-wrapper",
+                        start: "top top",
+                        end: "+=300%", // Length of scroll interaction
+                        scrub: 1,
+                        pin: true,
+                        // markers: false
+                    }
+                });
+
+                // Progress bar connection
+                processTl.to("#process-progress", { width: "100%", ease: "none", duration: processWords.length }, 0);
+
+                // Word transitions
+                processWords.forEach((word, i) => {
+                    if (i === 0) {
+                        // First word exits
+                        processTl.to(word, { opacity: 0, y: -50, duration: 1 }, 0);
+                    } else {
+                        // Word enters, then exits (unless it's the last one)
+                        const startTime = i - 0.5;
+                        processTl.to(word, { opacity: 1, y: 0, duration: 1 }, startTime);
+                        if (i !== processWords.length - 1) {
+                            processTl.to(word, { opacity: 0, y: -50, duration: 1 }, startTime + 1);
+                        }
+                    }
+                });
+            }
+
+            // Footer Giant Text Parallax
+            if (!prefersReducedMotion && !isMobile) {
+                gsap.to("#footer-giant-text", {
+                    y: -100, ease: "none",
+                    scrollTrigger: {
+                        trigger: "#footer", start: "top bottom", end: "bottom bottom", scrub: true
+                    }
+                });
+            }
+
+            
+            const labItems = document.querySelectorAll('.lab-item');
+            labItems.forEach(item => {
+                const header = item.querySelector('.lab-header');
+                header.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    // Close all
+                    labItems.forEach(l => l.classList.remove('active'));
+                    // Open clicked if it wasn't active
+                    if (!isActive) item.classList.add('active');
+                    
+                    // Refresh ScrollTrigger calculations after accordion animation
+                    setTimeout(() => ScrollTrigger.refresh(), 400); 
+                });
+            });
+
+
+            const mobileToggle = document.getElementById('mobile-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+            let menuOpen = false;
+
+            mobileToggle.addEventListener('click', () => {
+                menuOpen = !menuOpen;
+                if (menuOpen) {
+                    mobileToggle.innerText = 'CLOSE';
+                    mobileMenu.classList.remove('hidden');
+                    mobileMenu.style.pointerEvents = 'auto';
+                    lenis.stop(); // Prevent scrolling behind menu
+                    
+                    gsap.to(mobileMenu, { clipPath: "inset(0 0 0 0)", duration: 0.6, ease: "expo.inOut" });
+                    gsap.to(mobileLinks, { y: "0%", duration: 0.5, stagger: 0.1, delay: 0.3, ease: "expo.out" });
+                } else {
+                    mobileToggle.innerText = 'MENU';
+                    mobileMenu.style.pointerEvents = 'none';
+                    lenis.start();
+                    
+                    gsap.to(mobileLinks, { y: "100%", duration: 0.4, ease: "expo.in" });
+                    gsap.to(mobileMenu, { clipPath: "inset(100% 0 0 0)", duration: 0.6, delay: 0.2, ease: "expo.inOut" });
+                }
+            });
+
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileToggle.click(); // close menu
+                });
+            });
+
+
+            const overlay = document.getElementById('project-overlay');
+            const closeBtn = document.getElementById('close-project');
+            const triggers = document.querySelectorAll('.project-trigger');
+            
+            // Populate and open project overlay
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const id = trigger.getAttribute('data-project');
+                    const data = projectData[id];
+                    if(!data) return;
+
+                    document.getElementById('overlay-title').innerText = data.title;
+                    document.getElementById('overlay-category').innerText = data.category;
+                    document.getElementById('overlay-role').innerText = data.role;
+                    document.getElementById('overlay-status').innerText = data.status;
+                    document.getElementById('overlay-link').href = data.link;
+                    document.getElementById('overlay-desc').innerText = data.desc;
+                    
+                    const mediaContainer = document.getElementById('overlay-media');
+                    mediaContainer.innerHTML = data.media.map(url => `<img src="${url}" class="w-full h-auto bg-graphite" alt="Project Media">`).join('');
+
+                    overlay.classList.remove('hidden');
+                    lenis.stop(); // stop background scrolling
+                    
+                    gsap.to(overlay, { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 0.8, ease: "expo.inOut" });
+                });
+            });
+
+            closeBtn.addEventListener('click', () => {
+                gsap.to(overlay, { 
+                    clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)", 
+                    duration: 0.6, 
+                    ease: "expo.inOut",
+                    onComplete: () => {
+                        overlay.classList.add('hidden');
+                        lenis.start();
+                    }
+                });
+            });
+
+            // Art Lightbox
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const closeLightbox = document.getElementById('close-lightbox');
+            const artTriggers = document.querySelectorAll('.lightbox-trigger');
+
+            artTriggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const src = trigger.getAttribute('data-src');
+                    if(src) {
+                        lightboxImg.src = src;
+                        lightbox.classList.remove('hidden');
+                        lenis.stop();
+                        
+                        // Small delay to allow display:block to apply before transition
+                        requestAnimationFrame(() => {
+                            lightbox.style.opacity = '1';
+                            lightboxImg.style.transform = 'scale(1)';
+                        });
+                    }
+                });
+            });
+
+            closeLightbox.addEventListener('click', () => {
+                lightbox.style.opacity = '0';
+                lightboxImg.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    lightbox.classList.add('hidden');
+                    lenis.start();
+                }, 300); // match duration
+            });
+            
+            // Close lightbox on background click
+            lightbox.addEventListener('click', (e) => {
+                if(e.target === lightbox) closeLightbox.click();
+            });
+        });
+    </script>
+</body>
+</html>
